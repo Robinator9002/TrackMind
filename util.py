@@ -24,6 +24,10 @@ def get_activity_level(kpm):
     else:
         return 'inactive'
 
+def map_activity(activity):
+    mapping = {'autoclicker': 5, 'very_active': 4, 'active': 3, 'moderate': 2, 'passive': 1, 'inactive': 0}
+    return mapping.get(activity, -1)
+
 def percentage_of_str_in_other(small, big):
     """Calculate the percentage of the first string that is present in the second string in correct order."""
     small_idx = 0

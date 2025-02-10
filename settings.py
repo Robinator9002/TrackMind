@@ -13,14 +13,14 @@ MODERATE = 30  # KPM
 PASSIVE = 5  # KPM
 INACTIVE = 300  # seconds
 
-# Data
+### Data
 DATA_ROOT = "data"
-# Csv
+## Csv
 TRACKER_CSV_FILE = "tracker.csv"
 MESSAGE_CSV_FILE = "messages.csv"
 TRACKER_CSV_PATH = os.path.join(DATA_ROOT, TRACKER_CSV_FILE)
 MESSAGE_CSV_PATH = os.path.join(DATA_ROOT, MESSAGE_CSV_FILE)
-# Sql
+## Sql
 # Path
 SQL_FILE = "app_usage"
 SQL_PATH = os.path.join(DATA_ROOT, SQL_FILE)

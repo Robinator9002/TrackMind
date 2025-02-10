@@ -1,6 +1,6 @@
 from util import percentage_of_str_in_other
 
-
+# Util Function
 def get_app_category(app_name):
     app_cat = []
     for app in categories.keys():
@@ -14,12 +14,12 @@ def get_app_category(app_name):
 
     return "/".join(app_cat) if app_cat else "unknown"
 
-
-categories = {'pycharm': 'coding', 'firefox': 'browser', 'chrome': 'browser', 'sublime_text': 'coding',
+# Categories
+categories = {'pycharm': 'coding', 'github': 'developing/coding/util', 'firefox': 'browser', 'chrome': 'browser', 'sublime_text': 'coding',
               'vscode': 'coding', 'chatgpt': 'util/developing', 'discord': 'social_media/communication',
               'cmd': 'util/developing', 'task': 'util', 'vivaldi': 'browser', 'opera': 'browser',
               'beebeep': 'social_media', 'photos': 'util', 'explorer': 'util', 'notepad': 'util/coding',
-              'mediaplayer': 'music', 'comfy': 'entertainment/creative', 'music': 'music', 'teams': 'communication',
+              'mediaplayer': 'music', 'comfy': 'entertainment', 'music': 'music', 'teams': 'communication',
               'word': 'util', 'excel': 'util', 'onenote': 'util', 'powerpoint': 'util', 'searchapp': 'util', 'unreal': 'developing/coding',
               'unity': 'developing/coding', 'blender': 'developing/modeling', 'godot': 'developing/coding',
               'steam': 'gaming/util', 'epic_games': 'gaming/util', 'gog': 'gaming/util', 'battle_net': 'gaming/util',
