@@ -8,6 +8,7 @@ from timemanager import TimeManager
 from util import get_activity_level
 from winmanager import WinManager
 from csv_util import save_to_csv
+from notification import NotificationManager
 
 
 class Tracker:
@@ -16,6 +17,7 @@ class Tracker:
 
         self.win_manager = WinManager(self)
         self.time_manager = TimeManager(self)
+        self.notification_manager = NotificationManager(self)
 
         self.init_values()
 
@@ -98,6 +100,12 @@ class Tracker:
     def print_items(self):
         print(self.last_data)
 
+    def print_notifications(self):
+        for notification in self.notification_manager.notifications:
+            print(notification)
+            print()
+            self.notification_manager.notifications.remove(notification)
+
     def run_console(self):
         self.print_menu()
         while True:
@@ -134,6 +142,7 @@ class Tracker:
         self.check_latest_data()
         self.check_date()
         self.time_manager.update()
+        self.notification_manager.update()
 
     def check_reset(self):
         if self.reset:
@@ -144,11 +153,27 @@ class Tracker:
 
             self.reset = False
 
-    def load(self):
+    def get_current_app_data(self):
         column = self.app.loader.load_column('app_name', self.last_app)
-        if column is None: return 0, 0, 0
+        data = {
+            'id': column[0],
+            'app_name': column[1],
+            'timestamp': column[2],
+            'category': column[3],
+            'activity': column[4],
+            'opened_time': column[5],
+            'active_time': column[6],
+            'total_active_time': column[7]
+        }
+        return data
 
-        opened_time, active_time, total_active_time = column[5], column[6], column[7]
+    def load(self):
+        current_app_data = self.get_current_app_data()
+        if not current_app_data:
+            return 0,0,0
+
+        values = ['opened_time', 'active_time', 'total_active_time']
+        opened_time, active_time, total_active_time = [current_app_data[value] for value in values]
         return opened_time, active_time, total_active_time
 
     def load_all(self):
