@@ -1,2 +1,2 @@
 # TrackMind
-My new AI Project, a task manager, where an AI recommends you actions with data it is collecting while running, like how long you are active, when youre pauses are, and in which apps you spend your most time on.
+My new AI Project, a tracking app, which automatically tracks which apps are active and how long, and stores the data locally (for analysis). Also, an AI Assistant will give recommendations based on the collected data.
