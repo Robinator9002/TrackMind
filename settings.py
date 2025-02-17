@@ -14,12 +14,12 @@ PASSIVE = 5  # KPM
 INACTIVE = 300  # seconds
 
 ### Data
-DATA_ROOT = "data"
+DATA_ROOT = "../data"
 ## Csv
 TRACKER_CSV_FILE = "tracker.csv"
-MESSAGE_CSV_FILE = "messages.csv"
+NOTIFICATION_CSV_FILE = "notifications.csv"
 TRACKER_CSV_PATH = os.path.join(DATA_ROOT, TRACKER_CSV_FILE)
-MESSAGE_CSV_PATH = os.path.join(DATA_ROOT, MESSAGE_CSV_FILE)
+NOTIFICATION_CSV_PATH = os.path.join(DATA_ROOT, NOTIFICATION_CSV_FILE)
 ## Sql
 # Path
 SQL_FILE = "app_usage"

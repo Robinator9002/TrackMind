@@ -7,8 +7,14 @@ def format_time(seconds: float) -> str:
         return f"{seconds:.2f}s"
     elif seconds < 3600:
         return f"{seconds / 60:.2f}m"
-    else:
+    elif seconds < 86400:
         return f"{seconds / 3600:.2f}h"
+    elif seconds < 604800:
+        return f"{seconds / 86400:.2f}d"
+    elif seconds < 31536000:
+        return f"{seconds / 604800:.2f}w"
+    else:
+        return f"{seconds / 31536000:.2f}y"
 
 def get_activity_level(kpm):
     if kpm >= AUTOCLICKER:
@@ -23,6 +29,14 @@ def get_activity_level(kpm):
         return 'passive'
     else:
         return 'inactive'
+
+
+PRODUCTIVITY_PER_CATEGORY = {frozenset[('coding', 'developing', 'modeling')]: 'productive',
+                             frozenset[('util', 'browser', 'communication')]: 'mediocre productivity',
+                             frozenset[('social_media', 'entertainment', 'gaming', 'music')]: 'unproductive',
+                             frozenset[('unknown',)]: 'other'}
+def get_productivity_by_category(category):
+    return PRODUCTIVITY_PER_CATEGORY.get(category, 'other')
 
 def map_activity(activity):
     mapping = {'autoclicker': 5, 'very_active': 4, 'active': 3, 'moderate': 2, 'passive': 1, 'inactive': 0}
