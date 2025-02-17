@@ -1,14 +1,14 @@
 import datetime
 import threading
-import time
 
 from category import get_app_category
+from csv_util import save_data_to_csv, save_notification_to_csv
+from notification import NotificationManager
 from settings import *
 from timemanager import TimeManager
 from util import get_activity_level
 from winmanager import WinManager
-from csv_util import save_to_csv
-from notification import NotificationManager
+from data_analysis import PlotManager
 
 
 class Tracker:
@@ -18,6 +18,7 @@ class Tracker:
         self.win_manager = WinManager(self)
         self.time_manager = TimeManager(self)
         self.notification_manager = NotificationManager(self)
+        self.plot_manager = PlotManager(self)
 
         self.init_values()
 
@@ -63,7 +64,8 @@ class Tracker:
         self.date_check_rate -= 1
         if self.date_check_rate <= 0 and self.last_data:
             current_date = datetime.datetime.now().date()
-            saved_dates = [datetime.datetime.fromisoformat(self.last_data[i][2]).date() for i in range(len(self.last_data))]
+            saved_dates = [datetime.datetime.fromisoformat(self.last_data[i][2]).date() for i in
+                           range(len(self.last_data))]
 
             last_saved_date = max(saved_dates)
 
@@ -79,61 +81,16 @@ class Tracker:
     def start(self):
         # Threads
         key_thread = threading.Thread(target=self.check_keyboard, daemon=True)
-        console_thread = threading.Thread(target=self.run_console)
 
         # Start
         key_thread.start()
-        console_thread.start()
-        self.run()
+        self.app.tk_manager.run()
 
-    def print_menu(self):
-        print("=" * 80)
-        print("=" * 37, "Menu", "=" * 37)
-        print("=" * 80)
-        print("print: Print out all the Data")
-        print("menu: Print the Menu again")
-        print("reset: tracking")
-        print("quit: Close the App")
-        print("=" * 80)
-        print()
-
-    def print_items(self):
-        print(self.last_data)
-
-    def print_notifications(self):
-        for notification in self.notification_manager.notifications:
-            print(notification)
-            print()
-            self.notification_manager.notifications.remove(notification)
-
-    def run_console(self):
-        self.print_menu()
-        while True:
-            if self.app.quiting:
-                break
-
-            i = input("Choice: ")
-            print()
-            if i == "print":
-                self.print_items()
-            elif i == "menu":
-                self.print_menu()
-            elif i == "reset":
-                self.reset = True
-            elif i == "quit":
-                print("Collecting Data...")
-                self.app.quiting = True
-            else:
-                print("Invalid Choice!")
-                print()
-                continue
-
-    def run(self):
-        while True:
-            if self.app.quiting:
-                break
-            self.update()
-            time.sleep(ACTUALIZE_RATE)
+    def show_notifications(self):
+        notifications = self.notification_manager.notifications
+        if len(notifications) >= 1:
+            self.app.tk_manager.show_notification(notifications[0])
+            self.notification_manager.at_notification(notifications[0])
 
     def update(self):
         self.check_reset()
@@ -148,29 +105,24 @@ class Tracker:
         if self.reset:
             self.app.loader.clear_table()
             self.time_manager.reset_times()
-            self.save_csv()
+            self.save_data_csv()
             self.save_all()
 
             self.reset = False
 
     def get_current_app_data(self):
         column = self.app.loader.load_column('app_name', self.last_app)
-        data = {
-            'id': column[0],
-            'app_name': column[1],
-            'timestamp': column[2],
-            'category': column[3],
-            'activity': column[4],
-            'opened_time': column[5],
-            'active_time': column[6],
-            'total_active_time': column[7]
-        }
+        if not column:
+            return None
+        data = {'id': column[0], 'app_name': column[1], 'timestamp': column[2], 'category': column[3],
+                'activity': column[4], 'opened_time': column[5], 'active_time': column[6],
+                'total_active_time': column[7]}
         return data
 
     def load(self):
         current_app_data = self.get_current_app_data()
         if not current_app_data:
-            return 0,0,0
+            return 0, 0, 0
 
         values = ['opened_time', 'active_time', 'total_active_time']
         opened_time, active_time, total_active_time = [current_app_data[value] for value in values]
@@ -200,12 +152,31 @@ class Tracker:
                  'opened_time': opened_time, 'active_time': active_time, 'total_active_time': total_active_time}
         self.app.loader.save_column('app_name', to_save, stats)
 
-    def save_csv(self):
+    def create_plot(self, values, root):
+        self.plot_manager.create_plot(values, root)
+
+    def apply_plot(self, plot):
+        self.app.tk_manager.show_plot(plot)
+
+    def save_data_csv(self):
         data = self.last_data
-        save_to_csv(TRACKER_CSV_PATH, data)
+        save_data_to_csv(TRACKER_CSV_PATH, data)
+
+    def save_notification_csv(self, not_text, not_type, like):
+        current_data = next((data for data in self.last_data if data[1] == self.last_app), None)
+        if not current_data:
+            return
+        data = {"id": current_data[0], "timestamp": current_data[2], "app_name": current_data[1], "category": current_data[3],
+                "activity": current_data[4], "opened_time": current_data[5], "active_time": current_data[6],
+                "total_active_time": current_data[7], 'notification_text': f"'{not_text}'",
+                'notification_type': f"'{not_type}'", 'like': like}
+        save_notification_to_csv(NOTIFICATION_CSV_PATH, data)
 
     def on_keypress(self):
         self.time_manager.on_keypress()
+
+    def on_notification_qualified(self, notification, like):
+        self.save_notification_csv(notification[0], notification[1], like)
 
     def quit(self):
         self.save_all()

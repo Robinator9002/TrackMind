@@ -1,16 +1,18 @@
 import atexit
-import os
 import signal
 import sys
 
 from settings import *
 from sql import SQLManager, SQLLoader
 from tracker import Tracker
+from tkmanager import TKManager
 
 
 class App:
     def __init__(self):
         self.tracker = Tracker(self)
+
+        self.tk_manager = TKManager(self.tracker)
 
         self.sql_manager = SQLManager()
         self.loader = SQLLoader(self.sql_manager)
@@ -23,7 +25,6 @@ class App:
         signal.signal(signal.SIGTERM, self.handle_exit)  # Kill-Command
 
     def handle_exit(self, signum, frame):
-        print(f"Received signal {signum}, saving before exit...")
         self.quit()
         sys.exit(0)  # Save Quit after Saving
 
