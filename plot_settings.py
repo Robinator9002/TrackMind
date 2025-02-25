@@ -1,7 +1,14 @@
 """
-Settings to configure the plot, like plotsize, font and configuration values, used mainly in data_analysis.py.
-Most settings are set via plt.rc, which uses the PLOT_RC_PARAMS and is called in data_analysis.py.
-The PLOT Mapping contains the plots that will be made in data_analysis.py, and all values that are important for this.
+The plot_settings module contains various settings for configuring the plots, used mainly in data_analysis.py.
+
+Variables:
+- PLOT_WIDTH, PLOT_HEIGHT: Width and height of the plots.
+- PLOT_TITLE_SIZE, PLOT_COLUMN_SIZE, PLOT_LABEL_SIZE: Font sizes for the plot title, column labels, and labels.
+- PLOT_TITLE_COLOR, PLOT_COLUMN_COLOR: Colors for the plot title and column labels.
+- MAX_LENGTH_BEFORE_ROTATION, MAX_LENGTH_BEFORE_STRONG_ROTATION: Maximum lengths before rotating x-axis labels.
+- ROTATION, STRONG_ROTATION: Rotation angles for x-axis labels.
+- PLOT_RC_PARAMS: Dictionary containing overall design settings for the plots.
+- PLOT_MAPPING: Dictionary containing the plots that will be made in data_analysis.py, along with their important values.
 """
 
 import matplotlib.pyplot as plt

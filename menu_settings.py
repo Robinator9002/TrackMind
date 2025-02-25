@@ -1,6 +1,10 @@
 """
-Settings to configure the TKinter app, containing color, font and size values.
-This is mainly used in tkmanager.py.
+The menu_settings module contains various settings for configuring the TKinter app, used mainly in tkmanager.py.
+
+Variables:
+- Universal: Colors, font, size values, and dropdown content for the app.
+- Menu Window: Icon path, frame size, resizable, close button, title, title font, size, listbox size, font, button font, size, listbox font, size, dropdown font, size, dropdown width, caption, caption font, size, startup button colors.
+- Notification: Open time, frame size, resizable, close button, font, font size.
 """
 
 ## Universal
