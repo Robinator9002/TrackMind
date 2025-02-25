@@ -1,5 +1,6 @@
 """
-Settings to configure the App
+Settings to configure the TKinter app, containing color, font and size values.
+This is mainly used in tkmanager.py.
 """
 
 ## Universal
@@ -17,20 +18,30 @@ DROPDOWN_HOVER_BG = "#3A3A3A"
 DROPDOWN_ARROW = "white"
 
 # Dropdown Content
-DROPDOWN_CONTENT = {'App Usage': ('Most Used Apps', 'Activity Tracking', 'Productivity', 'Total Active Time'),
-    'Notifications': ('Message Count', 'Message Type', 'Activity', 'Likes'),
-    'Time': ('Last Hour', 'Last 4 Hours', 'Today', 'This Week', 'This Month', 'This Year', 'Total')}
+DROPDOWN_CONTENT = {'App Usage': (
+'Most Used Apps', 'Activity Tracking', 'Productivity', 'Total Active Time', 'Usage Distribution', 'Usage Density'),
+                    'Tracker': (
+                    'Most Used Apps', 'Activity Tracking', 'Productivity', 'Total Active Time', 'Usage Distribution',
+                    'Usage Density'),
+                    'Notifications': ('Message Count', 'Message Type', 'Activity', 'Likes', 'Likes Corr'),
+                    'Direction': ('Top', 'Last'),
+                    'Part': ('Full', '50%', '25%', '10%', '10', '5', '3'),
+                    'Time': ('Last Hour', 'Last 4 Hours', 'Today', 'This Week', 'This Month', 'This Year', 'Total'),}
 
 ## Menu Window
+# Icon
+MENU_ICON_PATH = 'img/scaled_dark_glitchy_ai_hourglass.png'
 # Frame
-MENU_WIDTH, MENU_HEIGHT = 1300, 950
+MENU_WIDTH, MENU_HEIGHT = 1300, 975
 MENU_RESIZABLE = (False, False)
 MENU_CLOSE_BUTTON = 'Escape'
 # Title
-MENU_TITLE = 'TrackMind'
-MENU_TITLE_FONT, MENU_TITLE_FONT_SIZE = 'sans_serif', 18
+MENU_TITLE = 'Track Mind'
+MENU_TITLE_FONT, MENU_TITLE_FONT_SIZE = 'sans_serif', 20
+# Size
+MENU_LISTBOX_WIDTH, MENU_LISTBOX_HEIGHT = 91, 27
 # Font
-MENU_FONT, MENU_FONT_SIZE = 'sans_serif', 16
+MENU_FONT, MENU_FONT_SIZE = 'sans_serif', 20
 MENU_BUTTON_FONT, MENU_BUTTON_FONT_SIZE = 'sans_serif', 16
 MENU_LISTBOX_FONT, MENU_LISTBOX_FONT_SIZE = 'sans_serif', 14
 MENU_DROPDOWN_FONT, MENU_DROPDOWN_FONT_SIZE = 'sans_serif', 14
@@ -38,10 +49,15 @@ MENU_DROPDOWN_WIDTH = 10
 # Caption
 MENU_CAPTION = 'Welcome to TrackMind'
 MENU_CAPTION_FONT, MENU_CAPTION_FONT_SIZE = 'sans_serif', 30
+# Startup Button
+BUTTON_GREEN_BG, BUTTON_GREEN_HOVER_BG = '#4CAF50', '#66BB6A'
+BUTTON_RED_BG, BUTTON_RED_HOVER_BG = '#E53935', '#EF5350'
 
 ## Notification
+# Main settings
+NOTIFICATION_OPEN_TIME = 60000  # In Milliseconds
 # Frame
-NOTIFICATION_WIDTH, NOTIFICATION_HEIGHT = 600, 350
+NOTIFICATION_WIDTH, NOTIFICATION_HEIGHT = 500, 325
 NOTIFICATION_RESIZABLE = (False, False)
 NOTIFICATION_CLOSE_BUTTON = 'Escape'
 # Font

@@ -1,72 +1,118 @@
-import os
 from datetime import datetime, timedelta
 
-import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from menu_settings import DROPDOWN_CONTENT
 from plot_settings import *
-from settings import NOTIFICATION_CSV_PATH
-from util import format_time, get_productivity_by_category  # Assumed to be defined in util.py
+from settings import NOTIFICATION_CSV_PATH, os, TRACKER_CSV_PATH
+from util import format_time, get_productivity_by_category, map_activity, one_hot_encode, convert_last_data_to_dataframe
 
 
 class PlotManager:
+    """
+    The PlotManager class is responsible for managing and creating plots based on the data analysis.
+
+    Attributes:
+        tracker (object): The manager object that provides necessary functionality for the PlotManager.
+        dark_palette (list): A list of dark color codes for plotting.
+
+    Methods:
+        __init__(self, manager): Initializes the PlotManager instance with the provided manager object.
+        load_tracker_data(self): Loads and prepares the raw data from tracker.csv.
+        load_notification_data(self): Loads and prepares the raw data from notifications.csv.
+        prepare_data(self, data, plot_type, sort, time_range, part, values): Performs all data preparation steps.
+        sort_data_by(self, data, sort): Sorts data based on the selected sort criteria.
+        filter_by_part(self, data, part): Filters data based on user selection.
+        filter_by_time_range(self, data, time_range): Filters data based on the selected time range.
+        create_date_column(self, data, time_range): Creates the date column based on the time range.
+        add_productivity(self, data): Adds productivity score.
+        calculate_message_count(self, data): Calculates the message count.
+        encode_data(self, data): Encodes values using the one_hot_encode, specifically targeting: activity, category, and notification_type columns from data.
+        create_tkinter_plot(self, data, plot_settings, root): Creates the Matplotlib plot and shows the canvas in tkinter via self.tracker.app.tk_manager.show_plot(plot).
+        close_plot(self, plot): Closes the plot.
+        get_plot_settings(self, values): Determines the plot settings based on the dropdown selections.
+    """
+
     def __init__(self, manager):
-        self.manager = manager
+        """
+        Initializes the PlotManager instance with the provided manager object.
 
-        sns.set_style("darkgrid")
-        plt.rcParams.update({# Overall Design
-            'figure.figsize': (8, 5), 'figure.dpi': 100, 'figure.autolayout': True, 'font.size': 10,
-            'font.family': 'sans-serif', 'axes.titlesize': 14, 'axes.labelsize': 12, 'axes.labelcolor': 'white',
-            'axes.grid': True, 'grid.alpha': 0.3, 'grid.color': '#cccccc', 'axes.edgecolor': '#444444',
-            'text.color': 'white',
+        Args:
+            manager (object): The manager object that provides necessary functionality for the PlotManager.
+        """
+        self.tracker = manager
 
-            # Lines and Markers
-            'lines.linewidth': 2, 'lines.markersize': 8,
-
-            # Legends
-            'legend.fontsize': 10, 'legend.frameon': True, 'legend.framealpha': 0.9, 'legend.edgecolor': '#333333',
-
-            # Ticks (Skala)
-            'xtick.labelsize': 10, 'ytick.labelsize': 10, 'xtick.direction': 'out', 'ytick.direction': 'out',
-            'xtick.color': 'white', 'ytick.color': 'white',
-
-            # Colorpalettes
-            'axes.prop_cycle': plt.cycler(color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']),
-
-            # Background and Grid
-            'figure.facecolor': '#2e2e2e', 'axes.facecolor': '#3e3e3e', })
-        plt.rcParams.update({'axes.grid': True, 'grid.linestyle': '--', 'axes.xmargin': 0.02, })
+        plt.rcParams.update(PLOT_RC_PARAMS)
 
         self.dark_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-            '#bcbd22', '#17becf', '#aec7e8', '#ffbb78', '#98df8a', '#ff9896', '#c5b0d5', '#c49c94', '#f7b6d2',
-            '#c7c7c7', '#dbdb8d', '#9edae5']
+                             '#bcbd22', '#17becf', '#aec7e8', '#ffbb78', '#98df8a', '#ff9896', '#c5b0d5', '#c49c94',
+                             '#f7b6d2', '#c7c7c7', '#dbdb8d', '#9edae5']
 
-    def create_plot(self, values, root):
-        """Gets the plot settings and calls create_tkinter_plot"""
-        # Check Data
+    def create_plot(self, dropdown_values, root):
+        """Gets the plot settings, loads the data and calls prepare_data and create_tkinter_plot with the right values.
+        Also configures the dropdown_values using DROPDOWN_CONTENT from menu_settings.
+        It features using the SQL Data and loading both CSV Files (Tracker and Notifications)."""
+        # Dropdown Keys
+        dropdown_keys = list(DROPDOWN_CONTENT.keys())
+        # Get Plot Settings
+        values = [None for _ in dropdown_values]
+        for idx, value in enumerate(dropdown_values):
+            if value == dropdown_keys[1]:
+                values[idx] = dropdown_keys[0]
+                continue
+            values[idx] = dropdown_values[idx]
+        plot_settings = get_plot_settings(values)
+
+        # Unpack Plot Settings
+        if plot_settings[0] == 'heatmap':
+            plot_type, pivot, plot_name, sort, time_range, part = plot_settings
+            values = pivot
+        else:
+            plot_type, x, y, hue, plot_name, x_name, y_name, legend_name, sort, time_range, part = plot_settings
+            values = [x, y, hue]
+
+        # Load Data
         data = None
-        if os.path.exists(NOTIFICATION_CSV_PATH):
-            data = self.load_data()
+
+        if dropdown_values[0] == dropdown_keys[0]:
+            data = convert_last_data_to_dataframe(self.tracker.last_data)
+            data['timestamp'] = pd.to_datetime(data['timestamp'])
+        elif dropdown_values[0] == dropdown_keys[1]:
+            data = self.load_tracker_data()
+        elif dropdown_values[0] == dropdown_keys[2]:
+            data = self.load_notification_data()
+
         if data is None or data.empty:
-            self.manager.app.tk_manager.set_dropdowns('normal')
+            self.tracker.app.tk_manager.set_dropdowns('normal')
             return
 
-        x, y, hue, plot_name, x_name, y_name, legend_name, plot_type, time_range = get_plot_settings(values)
-
         # Data processing steps
-        data = self.prepare_data(data, time_range)
+        data = self.prepare_data(data, plot_type, sort, time_range, part, values)
 
-        self.create_tkinter_plot(data, x, y, hue, plot_name, x_name, y_name, legend_name, plot_type, root)
+        # Create Plot
+        self.create_tkinter_plot(data, plot_settings, root)
 
-    def load_data(self):
-        """Loads and prepares the raw data"""
-        data = pd.read_csv(NOTIFICATION_CSV_PATH)
-        data['timestamp'] = pd.to_datetime(data['timestamp'])
-        return data
+    def load_tracker_data(self):
+        """Loads and prepares the raw data from tracker.csv"""
+        tracker_abs_path = os.path.join(self.tracker.app.autostart_manager.current_abs_path[0], TRACKER_CSV_PATH)
+        if os.path.exists(tracker_abs_path):
+            data = pd.read_csv(tracker_abs_path)
+            data['timestamp'] = pd.to_datetime(data['timestamp'])
+            return data
+        return None
 
-    def prepare_data(self, data, time_range):
+    def load_notification_data(self):
+        """Loads and prepares the raw data from notifications.csv"""
+        notification_abs_path = os.path.join(self.tracker.app.autostart_manager.current_abs_path[0],
+                                             NOTIFICATION_CSV_PATH)
+        if os.path.exists(notification_abs_path):
+            data = pd.read_csv(notification_abs_path)
+            data['timestamp'] = pd.to_datetime(data['timestamp'])
+            return data
+        return None
+
+    def prepare_data(self, data, plot_type, sort, time_range, part, values):
         """Performs all data preparation steps"""
         # 1. Time filtering
         data = self.filter_by_time_range(data, time_range)
@@ -80,11 +126,91 @@ class PlotManager:
         # 4. Calculate message count
         data = self.calculate_message_count(data)
 
-        # 5. Format time
-        if 'total_active_time' in data.columns:
-            data['total_active_time'] = data['total_active_time'].apply(format_time)
+        # 5. Sort
+        data = self.sort_data_by(data, sort)
+
+        # 6. Filter by part
+        data = self.filter_by_part(data, part)
+
+        # 7. Encode Data or Format time
+        if plot_type == 'heatmap':
+            # 7.1 Encode Data
+            data = self.encode_data(data)
+        else:
+            # 7.2 Format Time
+            if 'total_active_time' in data.columns:
+                data['total_active_time'] = data['total_active_time'].apply(format_time)
+
+        # 8. Drop Duplicates
+        data = data.drop_duplicates()
+        if 'date' in values:
+            data = data.drop_duplicates('date')
 
         return data
+
+    def sort_data_by(self, data, sort):
+        """Sorts data based on the selected sort criteria"""
+        if sort == 'date':
+            data = data.sort_values('date', ascending=True)
+        elif sort == 'productivity':
+            data = data.sort_values('productivity', ascending=True)
+        elif sort == 'total_active_time':
+            data = data.sort_values('total_active_time', ascending=True)
+        elif sort == 'total_messages':
+            data = data.sort_values('total_messages', ascending=True)
+        elif sort == 'activity':
+            data['num_activity'] = data['activity'].apply(lambda x: map_activity(x))
+            data = data.sort_values('num_activity', ascending=True)
+            data = data.drop('num_activity', axis=1)
+        elif sort == 'like':
+            data = data.sort_values(by='like', ascending=False)
+
+        return data
+
+    def filter_by_part(self, data, part):
+        """
+        Filter data based on user selection.
+
+        Args:
+            data (DataFrame): Sorted data.
+            part (list): [direction, amount] e.g. ['top', '10%'] or ['last', '5'].
+
+        Returns:
+            DataFrame: Filtered data.
+        """
+        direction, amount = part[0].lower(), part[1]
+
+        # If the amount is full then just do nothing and return the input data
+        if amount == 'full':
+            return data
+
+        # Determine if amount is a percentage or absolute number
+        if "%" in amount:
+            try:
+                percent = float(amount.strip("%"))
+            except ValueError:
+                raise ValueError("Invalid percentage value: " + amount)
+            n = int(round(len(data) * (percent / 100)))
+        else:
+            try:
+                n = int(amount)
+            except ValueError:
+                raise ValueError("Invalid numeric value: " + amount)
+
+        # Ensure n is at least 1 and not more than the total data length
+        n = max(1, min(n, len(data)))
+
+        print(n)
+
+        # Filter: top = first n rows, last = last n rows
+        if direction == "top":
+            filtered_data = data.head(n)
+        elif direction == "last":
+            filtered_data = data.tail(n)
+        else:
+            raise ValueError("Invalid direction: " + direction)
+
+        return filtered_data
 
     def filter_by_time_range(self, data, time_range):
         """Filters data based on the selected time range"""
@@ -123,17 +249,40 @@ class PlotManager:
     def calculate_message_count(self, data):
         """Calculates the message count"""
         if 'notification_text' in data.columns:
-            data['message_count'] = data.groupby('date')['notification_text'].transform('count')
+            data['notification_count'] = data.groupby('date')['notification_text'].transform('count')
         return data
 
-    def create_tkinter_plot(self, data, x, y, hue, plot_name, x_name, y_name, legend_name, plot_type, root):
-        """Creates the Matplotlib plot and returns a Tkinter Canvas"""
-        fig = plt.figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT))
+    def encode_data(self, data):
+        """Encodes values using the one_hot_encode, specifically targeting:
+        - activity
+        - category
+        - notification_type
+        columns from data"""
+        data = one_hot_encode(data, 'activity')
+        data = one_hot_encode(data, 'category')
+        data = one_hot_encode(data, 'notification_type')
+        return data
 
+    def create_tkinter_plot(self, data, plot_settings, root):
+        """Creates the Matplotlib plot and shows the canvas in tkinter via self.tracker.app.tk_manager.show_plot(plot).
+        It features many different plot types, including:
+        line, bar, scatter, heatmap, box, violin."""
+
+        # Unpack Plot Settings based on Plot Type (plot_settings[0])
+        if plot_settings[0] == 'heatmap':
+            plot_type, pivot, plot_name, sort, time_range, part = plot_settings
+            correlation = data[pivot].corr()
+        else:
+            plot_type, x, y, hue, plot_name, x_name, y_name, legend_name, sort, time_range, part = plot_settings
+
+        ## Plot
+        fig = plt.figure(figsize=(PLOT_WIDTH, PLOT_HEIGHT))
         # Seaborn plot selection
-        plot_methods = {"line": [sns.lineplot, {'estimator': 'sum', 'marker': 'X'}],
-                        "bar": [sns.barplot, {'estimator': 'sum', 'width': 0.8}],
-                        "scatter": [sns.scatterplot, {'edgecolor': 'black'}]}
+        plot_methods = {"line": [sns.lineplot, {'estimator': sum, 'marker': 'X'}],
+                        "bar": [sns.barplot, {'estimator': sum, 'width': 0.8}],
+                        "scatter": [sns.scatterplot, {'edgecolor': 'black'}],
+                        "heatmap": [sns.heatmap, {'annot': True, 'cmap': 'YlGnBu'}], "box": [sns.boxplot, {}],
+                        "violin": [sns.violinplot, {'inner': 'quartile'}]}
 
         if plot_type not in plot_methods:
             raise ValueError(f"Invalid plot type: {plot_type}")
@@ -141,33 +290,49 @@ class PlotManager:
         # Create plot
         plot_method = plot_methods[plot_type]
         plot_func = plot_method[0]
-        if hue:
-            plot_func(data, x=x, y=y, hue=hue, palette=self.dark_palette, **plot_method[1])
+        if plot_type == 'heatmap':
+            plot_func(correlation, **plot_method[1])
         else:
-            plot_func(data, x=x, y=y, **plot_method[1])
+            if hue:
+                plot_func(data, x=x, y=y, hue=hue, palette=self.dark_palette or 'dark', **plot_method[1])
+            else:
+                plot_func(data, x=x, y=y, **plot_method[1])
 
-        # Plot labels
-        plt.suptitle(plot_name)
-        plt.xlabel(x_name)
-        plt.ylabel(y_name)
+            # Plot labels
+            plt.suptitle(plot_name, fontsize=PLOT_TITLE_SIZE, color=PLOT_TITLE_COLOR, fontweight='bold',
+                         fontstyle='italic')
+            plt.xlabel(x_name)
+            plt.ylabel(y_name)
+            plt.tight_layout()
+            plt.grid()
 
-        # Position legend
-        if legend_name:
-            plt.legend(title=legend_name, loc='upper left', bbox_to_anchor=(1, 1))
+            # Position legend
+            if legend_name:
+                plt.legend(title=legend_name, loc='upper left', bbox_to_anchor=(1, 1))
+
+        # Rotation (Ticks)
+        ax = plt.gca()
+        if len(ax.get_xticklabels()) > MAX_LENGTH_BEFORE_STRONG_ROTATION:
+            for label in ax.get_xticklabels():
+                label.set_rotation(STRONG_ROTATION)
+        elif len(ax.get_xticklabels()) > MAX_LENGTH_BEFORE_ROTATION:
+            for label in ax.get_xticklabels():
+                label.set_rotation(ROTATION)
 
         # Create canvas
         canvas = FigureCanvasTkAgg(fig, master=root)
         canvas.draw()
-        self.manager.apply_plot(canvas)
+        self.tracker.app.tk_manager.show_plot(canvas)
 
     @staticmethod
     def close_plot(plot):
+        """Closes the plot"""
         plt.close(plot.figure)
 
 
 def get_plot_settings(values):
     """Determines the plot settings based on the dropdown selections"""
-    data_dd_v, analysis_dd_v, time_dd_v = values
+    data_dd_v, analysis_dd_v, time_dd_v, direction_dd_v, part_dd_v = values
 
     try:
         plot_config = PLOT_MAPPING[data_dd_v][analysis_dd_v]
@@ -175,31 +340,14 @@ def get_plot_settings(values):
     except KeyError as e:
         raise ValueError(f"Invalid dropdown selection: {values}") from e
 
-    return (plot_config['x'], plot_config['y'], plot_config['hue'], plot_config['plot_name'], plot_config['x_name'],
-            plot_config['y_name'], plot_config['legend_name'], plot_config['plot_type'], time_range)
+    part = [str(direction_dd_v).lower(), str(part_dd_v).lower()]
 
-
-PLOT_MAPPING = {"App Usage": {
-    "Most Used Apps": {"x": "app_name", "y": "total_active_time", "hue": None, "plot_name": "Most Used Apps",
-                       "x_name": "App", "y_name": "Usage Time", "legend_name": None, "plot_type": "bar"},
-    "Activity Tracking": {"x": "date", "y": "activity", "hue": "category", "plot_name": "Activity Tracking",
-                          "x_name": "Date", "y_name": "Activity", "legend_name": "App Category", "plot_type": "line"},
-    "Productivity": {"x": "date", "y": "productivity", "hue": None, "plot_name": "Productivity Score", "x_name": "Date",
-                     "y_name": "Score", "legend_name": None, "plot_type": "line"},
-    "Total Active Time": {"x": "date", "y": "total_active_time", "hue": "category",
-                          "plot_name": "Total Active Time by Category", "x_name": "Date",
-                          "y_name": "Active Time (hours)", "legend_name": "App Category", "plot_type": "line"}},
-    "Notifications": {
-        "Message Count": {"x": "date", "y": "message_count", "hue": "notification_type", "plot_name": "Message History",
-                          "x_name": "Time", "y_name": "Message Count", "legend_name": "Message Type",
-                          "plot_type": "line"},
-        "Message Type": {"x": "notification_type", "y": "total_active_time", "hue": "like",
-                         "plot_name": "Message Type by Usage Time", "x_name": "Message Type", "y_name": "Usage Time",
-                         "legend_name": "Approved?", "plot_type": "scatter"},
-        "Activity": {"x": "category", "y": "like", "hue": "activity", "plot_name": "Approval by Activity",
-                     "x_name": "App Category", "y_name": "Approvals", "legend_name": "Activity", "plot_type": "bar"},
-        "Likes": {"x": "like", "y": "message_count", "hue": "like", "plot_name": "Approvals Over Time",
-                  "x_name": "Date", "y_name": "Message Count", "legend_name": "Approved?", "plot_type": "bar"}},
-    "Time": {"Last Hour": {"filter": "last_hour"}, "Last 4 Hours": {"filter": "last_4_hours"},
-             "Today": {"filter": "today"}, "This Week": {"filter": "this_week"}, "This Month": {"filter": "this_month"},
-             "This Year": {"filter": "this_year"}, "Total": {"filter": "total"}}}
+    if plot_config['plot_type'] == "heatmap":
+        return (
+            plot_config['plot_type'], plot_config['pivot'], plot_config['plot_name'], plot_config['sort'], time_range,
+            part)
+    else:
+        return (
+            plot_config['plot_type'], plot_config['x'], plot_config['y'], plot_config['hue'], plot_config['plot_name'],
+            plot_config['x_name'], plot_config['y_name'], plot_config['legend_name'], plot_config['sort'], time_range,
+            part)

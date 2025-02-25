@@ -6,8 +6,28 @@ from pynput.mouse import Listener as MouseListener
 
 
 class WinManager:
-    def __init__(self, manager):
-        self.manager = manager
+    """
+    Manages the interaction with the Windows operating system.
+
+    Attributes:
+    - tracker: Reference to the main tracker object.
+    - mouse_listener: Mouse listener object for capturing mouse clicks.
+
+    Methods:
+    - active_app: Checks the currently opened application in the foreground.
+    - check_keypress: Checks if any key was pressed, and calls the appropriate method.
+    - on_mouse_click: Callback method for handling mouse clicks.
+    """
+
+    def __init__(self, tracker):
+        """
+        Initializes the WinManager object with a reference to the tracker object.
+        Starts a mouse listener to capture mouse clicks.
+
+        Parameters:
+        - tracker: Reference to the main tracker object.
+        """
+        self.tracker = tracker
         self.mouse_listener = MouseListener(on_click=self.on_mouse_click)
         self.mouse_listener.start()
 
@@ -28,10 +48,11 @@ class WinManager:
             return f"Error: {e}"
 
     def check_keypress(self):
-        """Checks if any key was pressed, if true call the self.manager.on_keypress() method."""
+        """Checks if any key was pressed, if true call the self.tracker.on_keypress() method."""
         event = keyboard.read_event()
         if event.event_type == keyboard.KEY_DOWN:  # Only Keyboard Buttons
-            self.manager.on_keypress()
+            self.tracker.time_tracker.on_keypress()
 
     def on_mouse_click(self, x, y, button, pressed):
-        self.manager.on_keypress()
+        """Calls the self.tracker.time_tracker.on_keypress() method."""
+        self.tracker.time_tracker.on_keypress()

@@ -4,6 +4,23 @@ from settings import *
 
 
 class SQLLoader:
+    """
+    Manages the loading and saving of stats to/from a SQLite database using the SQLManager.
+
+    Attributes:
+    - db_manager (SQLManager): An instance of SQLManager for managing the database connection.
+    - table_name (str): Name of the table to load and save stats (default: DEFAULT_TABLE_NAME from menu_settings.py).
+
+    Methods:
+    - clear_table(): Deletes all data in the table.
+    - _initialize_table(): Ensures the stats table exists in the database.
+    - save_stat(stat_name, value): Saves or updates a specific stat in the database.
+    - save_column(key_stat, key_value, stats): Saves or updates all stats in the database.
+    - load_stat(stat_name): Loads a specific stat from the database.
+    - load_column(stat_name, value): Loads a specific column from the database.
+    - save_all_stats(stats): Saves or updates all stats at once.
+    - load_all_stats(): Loads all stats from the database.
+    """
     def __init__(self, db_manager, table_name=DEFAULT_TABLE_NAME):
         """
         Initializes the SQLLoader with a reference to the SQLManager and table name.
@@ -103,7 +120,29 @@ class SQLLoader:
 
 
 class SQLManager:
+    """
+    Manages the connection and operations with a SQLite database.
+
+    Attributes:
+        connection: The SQLite connection object.
+
+    Methods:
+        query(query, params=None): Executes a query with optional parameters.
+        commit(): Commits the current transaction.
+        fetch(query, params=None): Fetches the first row of the result of a query.
+        fetch_all(query, params=None): Fetches all rows of the result of a query.
+        create_table(table_name=DEFAULT_TABLE_NAME, columns=None): Creates a table with the specified name and columns.
+        update_object(updates, condition, table_name=DEFAULT_TABLE_NAME): Updates an object in the table.
+        drop_table(table_name=DEFAULT_TABLE_NAME): Drops a table with the specified name.
+        insert_object(table_name=DEFAULT_TABLE_NAME, values=None): Inserts an object (row) into the specified table.
+        delete_object(table_name=DEFAULT_TABLE_NAME, condition=None): Deletes an object (row) from the specified table based on a condition.
+        close(): Closes the database connection.
+        __del__(): Ensures the connection is closed when the object is deleted.
+    """
     def __init__(self, database_name=SQL_PATH):
+        """
+        Initializes the SQLManager with a connection to the specified database.
+        """
         self.connection = sql.connect(database_name)
 
     def query(self, query, params=None):
