@@ -129,6 +129,8 @@ class PlotManager:
         # 5. Sort
         data = self.sort_data_by(data, sort)
 
+        # <- Here should group_data be!
+
         # 6. Filter by part
         data = self.filter_by_part(data, part)
 

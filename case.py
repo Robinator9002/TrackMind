@@ -18,16 +18,16 @@ from category import get_categories_by_str
 from util import map_activity, format_time, get_productivity_score_by_category
 
 ## Delays
-BASE_DELAYS = {'min': 120, 'category_activity': 180, 'less_important_category': 600,
+BASE_DELAYS = {'min': 120, 'category_activity': 360, 'less_important_category': 600,
                'less_important_category_total': 1800, 'autoclicker': 120, 'over_active_time': 900,
                'over_total_active_time': 3600, }
 
 ## Cases (values)
 # Category/Activity
 CATEGORY_ACTIVITY_NOTIFICATION = "You seem distracted. Try focusing more!"
-CATEGORY_ACTIVITY = {frozenset(('coding', 'developing', 'gaming')): 'active',
+CATEGORY_ACTIVITY = {frozenset(('coding', 'developing')): 'active',
                      frozenset(('social_media', 'music', 'entertainment', 'unknown')): 'passive',
-                     frozenset(('util', 'browser', 'modeling', 'communication')): 'moderate'}
+                     frozenset(('util', 'gaming', 'browser', 'modeling', 'communication')): 'moderate'}
 CATEGORY_ACTIVITY_NOTIFICATION_TYPE = 'category_activity'
 # Less important Category
 LESS_IMPORTANT_CATEGORY_ACTIVE_NOTIFICATION = "You are @time@ active in @category@. Probably try something more productive?"
@@ -61,7 +61,7 @@ def tick_delays(delays: dict):
 
 # Get Cases
 def get_cases(data, delays, kpm=None):
-    """Goes through all possible cases, also using delays, and returns new delays and active notifications."""
+    """Goes through all possible cases, also using delays, and returns new delays, active notifications and whether KPM where used for the message."""
     cases, types = [], []
     new_delays = {key: value for key, value in delays.items()}
 
@@ -77,6 +77,8 @@ def get_cases(data, delays, kpm=None):
     opened_time_formated, active_time_formated, total_active_time_formated = format_time(opened_time), format_time(
         active_time), format_time(total_active_time)
 
+    uses_kpm = False
+
     ### Categories
     for cat in get_categories_by_str(str(category)):
         ## Category/Activity
@@ -85,6 +87,7 @@ def get_cases(data, delays, kpm=None):
                 cases.append(CATEGORY_ACTIVITY_NOTIFICATION)
                 types.append(CATEGORY_ACTIVITY_NOTIFICATION_TYPE)
                 new_delays['category_activity'] = BASE_DELAYS['category_activity']
+                uses_kpm = True
     ## Less important Category
     # First check if in other category (which will be ignored)
     if not productivity == -1:
@@ -112,6 +115,7 @@ def get_cases(data, delays, kpm=None):
         cases.append(notification)
         types.append(AUTOCLICKER_NOTIFICATION_TYPE)
         new_delays['autoclicker'] = BASE_DELAYS['autoclicker']
+        uses_kpm = True
     ### Active Time
     ## Active Time
     if active_time >= OVER_ACTIVE_TIME and delays['over_active_time'] <= 0:
@@ -127,4 +131,4 @@ def get_cases(data, delays, kpm=None):
         new_delays['over_total_active_time'] = BASE_DELAYS['over_total_active_time']
 
     notifications = [[cases[i], types[i]] for i in range(len(cases))]
-    return notifications, new_delays
+    return notifications, new_delays, uses_kpm

@@ -54,6 +54,7 @@ class Tracker:
         save_notification_csv(): Saves a notification with the given detail via a csv_util function as CSV File.
         on_notification_qualified(): Saves a notification with like information, calling self.save_notification_csv.
     """
+
     def __init__(self, app):
         """
         Initializes the Tracker class.

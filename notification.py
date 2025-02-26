@@ -32,15 +32,19 @@ class NotificationManager:
 
     def get_notifications(self):
         """Uses get_cases from case.py to get all the current notifications, and then returns them.
-        Also actualizes NotificationManager.delays (self.delays) to the new value, where individual values will be reset if a notification is being shown."""
+        Also actualizes NotificationManager.delays (self.delays) to the new value, where individual values will be reset if a notification is being shown.
+        Checks if KPM (or activity) where used in the message (e.g. if the message is tracking if the user is distracted, or inactive),
+        if so reset the kpm in the TimeManager (self.tracker.time_manager.reset_kpm())."""
         if not self.data:
             return None
 
-        notifications, new_delays = get_cases(self.data, self.delays, self.tracker.time_manager.kpm)
+        notifications, new_delays, uses_kpm = get_cases(self.data, self.delays, self.tracker.time_manager.kpm)
         if new_delays:
             self.delays = new_delays
         for item in self.notifications:
             notifications.append(item)
+        if uses_kpm:
+            self.tracker.time_manager.reset_kpm()  # Reset the KPM if they were used
 
         return notifications
 

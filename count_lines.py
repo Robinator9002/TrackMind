@@ -90,9 +90,9 @@ def count_docstrings_and_functions_length(directory, exclude_folders=None):
                             total_functions_length += function_length
                             total_functions_count += 1
 
-    print(f"\nTotal docstring length: {total_docstrings_length}")
+    print(f"\nTotal docstring length: {total_docstrings_length} (letters)")
     print(f"Total docstrings count: {total_docstrings_count}")
-    print(f"Total function length: {total_functions_length}")
+    print(f"Total function length: {total_functions_length} (letters)")
     print(f"Total functions count: {total_functions_count}")
 
 def find_functions_without_docstrings(directory, exclude_folders=None):

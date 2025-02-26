@@ -12,6 +12,7 @@ Variables:
 - MODERATE: Threshold for detecting moderately active users (in KPM).
 - PASSIVE: Threshold for detecting passive users (in KPM).
 - INACTIVE: Threshold for detecting inactive users (in seconds).
+- ACTIVITY_RESET_TIME: How often the KPM are reset (in seconds).
 - DATA_ROOT: Root directory for storing data.
 - AUTOSTART_METHOD: Method for autostarting the application ('registry' or 'other').
 - AUTOSTART_REGISTRY_NAME: Name for the autostart registry entry.
@@ -40,6 +41,7 @@ ACTIVE = 30  # KPM
 MODERATE = 15  # KPM
 PASSIVE = 5  # KPM
 INACTIVE = 300  # seconds
+ACTIVITY_RESET_TIME = 120 # seconds
 
 ### Data
 DATA_ROOT = "data"
