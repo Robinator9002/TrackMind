@@ -66,7 +66,7 @@ def get_cases(data, delays, kpm=None):
     new_delays = {key: value for key, value in delays.items()}
 
     if delays['min'] > 0:
-        return [], delays
+        return [], delays, False
     new_delays['min'] = BASE_DELAYS['min']
 
     category, activity, opened_time, active_time, total_active_time = data['category'], data['activity'], data[

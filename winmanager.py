@@ -48,11 +48,11 @@ class WinManager:
             return f"Error: {e}"
 
     def check_keypress(self):
-        """Checks if any key was pressed, if true call the self.tracker.on_keypress() method."""
+        """Checks if any key was pressed, if true call the self.tracker.time_manager.on_keypress() method."""
         event = keyboard.read_event()
         if event.event_type == keyboard.KEY_DOWN:  # Only Keyboard Buttons
-            self.tracker.time_tracker.on_keypress()
+            self.tracker.time_manager.on_keypress()
 
     def on_mouse_click(self, x, y, button, pressed):
-        """Calls the self.tracker.time_tracker.on_keypress() method."""
-        self.tracker.time_tracker.on_keypress()
+        """Calls the self.tracker.time_tracker.time_manager.on_keypress() method."""
+        self.tracker.time_manager.on_keypress()

@@ -52,7 +52,8 @@ class PlotManager:
     def create_plot(self, dropdown_values, root):
         """Gets the plot settings, loads the data and calls prepare_data and create_tkinter_plot with the right values.
         Also configures the dropdown_values using DROPDOWN_CONTENT from menu_settings.
-        It features using the SQL Data and loading both CSV Files (Tracker and Notifications)."""
+        It features using the SQL Data and loading both CSV Files (Tracker and Notifications).
+        If the plot type is heatmap then disable the part dropdowns, so no misconceptions over the part dropdowns not working are made (they dont affect heatmap plots)!"""
         # Dropdown Keys
         dropdown_keys = list(DROPDOWN_CONTENT.keys())
         # Get Plot Settings
@@ -72,6 +73,10 @@ class PlotManager:
             plot_type, x, y, hue, plot_name, x_name, y_name, legend_name, sort, time_range, part = plot_settings
             values = [x, y, hue]
 
+        # If heatmap disable TKManager's part dropdown
+        if plot_type == 'heatmap':
+            self.tracker.app.tk_manager.set_dropdowns('disabled', False, False, True, False) # Only Part Dropdowns! Parameters: data, analysis, part, time
+
         # Load Data
         data = None
 
@@ -84,7 +89,10 @@ class PlotManager:
             data = self.load_notification_data()
 
         if data is None or data.empty:
-            self.tracker.app.tk_manager.set_dropdowns('normal')
+            if plot_type == 'heatmap':
+                self.tracker.app.tk_manager.set_dropdowns('normal', True, True, False, True)
+            else:
+                self.tracker.app.tk_manager.set_dropdowns('normal')
             return
 
         # Data processing steps
@@ -126,24 +134,27 @@ class PlotManager:
         # 4. Calculate message count
         data = self.calculate_message_count(data)
 
-        # 5. Sort
+        # Grouping and Filtering will not be done in heatmap-plot!
+        if not plot_type == 'heatmap':
+            # 5. Group
+            data = self.group_data_by(data, values)
+
+            # 6. Filter by part
+            data = self.filter_by_part(data, part)
+
+        # 7. Sort
         data = self.sort_data_by(data, sort)
 
-        # <- Here should group_data be!
-
-        # 6. Filter by part
-        data = self.filter_by_part(data, part)
-
-        # 7. Encode Data or Format time
+        # 8. Encode Data or Format time
         if plot_type == 'heatmap':
-            # 7.1 Encode Data
+            # 8.1 Encode Data
             data = self.encode_data(data)
         else:
-            # 7.2 Format Time
+            # 8.2 Format Time
             if 'total_active_time' in data.columns:
                 data['total_active_time'] = data['total_active_time'].apply(format_time)
 
-        # 8. Drop Duplicates
+        # 9. Drop Duplicates
         data = data.drop_duplicates()
         if 'date' in values:
             data = data.drop_duplicates('date')
@@ -168,6 +179,24 @@ class PlotManager:
             data = data.sort_values(by='like', ascending=False)
 
         return data
+
+    def group_data_by(self, data, values):
+        """Uses pd.DataFrame().groupby() to remove all unnecessary data and group the rest using sum as aggregation function.
+        Only sums the y-axis. If like or is in axis just skip it. If hue ist the same as x or y then group only by x!"""
+        x, y, hue = values
+        # If x or y are not in data
+        if x not in data.columns or y not in data.columns:
+            return data
+
+        # Define aggregation functions for y-axis
+        agg_funcs = {y: "sum"}
+
+        if hue and hue in data.columns and not hue in [x, y]:
+            grouped_data = data.groupby([x, hue]).agg(agg_funcs).reset_index()
+        else:
+            grouped_data = data.groupby(x).agg(agg_funcs).reset_index()
+
+        return grouped_data
 
     def filter_by_part(self, data, part):
         """
@@ -201,8 +230,6 @@ class PlotManager:
 
         # Ensure n is at least 1 and not more than the total data length
         n = max(1, min(n, len(data)))
-
-        print(n)
 
         # Filter: top = first n rows, last = last n rows
         if direction == "top":
@@ -310,7 +337,7 @@ class PlotManager:
 
             # Position legend
             if legend_name:
-                plt.legend(title=legend_name, loc='upper left', bbox_to_anchor=(1, 1))
+                plt.legend(title=legend_name, loc='upper left', bbox_to_anchor=(0, 1))
 
         # Rotation (Ticks)
         ax = plt.gca()
@@ -324,7 +351,7 @@ class PlotManager:
         # Create canvas
         canvas = FigureCanvasTkAgg(fig, master=root)
         canvas.draw()
-        self.tracker.app.tk_manager.show_plot(canvas)
+        self.tracker.app.tk_manager.show_plot(canvas, plot_type) # Give plot_type to correctly handle Part Plots!
 
     @staticmethod
     def close_plot(plot):

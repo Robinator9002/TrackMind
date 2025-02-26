@@ -131,7 +131,7 @@ class TKManager:
         """Creates all the Items for the App, from labels to dropdowns, and adds them. Mainly uses the add_*element* functions from the TKManager class."""
         ## Labels
         # Main Labels
-        self.startup_label = self.add_label('Startup', 1080, 160)
+        self.startup_label = self.add_label('Startup', 1250, 160)
         self.notification_label = self.add_label("Welcome to TrackMind!", 400, 80,
                                                  font=(MENU_CAPTION_FONT, MENU_CAPTION_FONT_SIZE))
         # Dropdown Labels
@@ -140,9 +140,9 @@ class TKManager:
         self.part_label = self.add_label('Part', 525, 200)
         self.time_label = self.add_label('Time', 750, 200)
         # Plot Labels
-        self.plot_label = self.add_label('Plot', 1080, 300)
-        self.data_label = self.add_label('Data', 1080, 575)
-        self.quit_label = self.add_label('Quit', 1080, 825)
+        self.plot_label = self.add_label('Plot', 1250, 300)
+        self.data_label = self.add_label('Data', 1250, 600)
+        self.quit_label = self.add_label('Quit', 1250, 850)
 
         ## List
         self.notification_list = self.add_listbox(40, 325, width=MENU_LISTBOX_WIDTH, height=MENU_LISTBOX_HEIGHT)
@@ -152,14 +152,14 @@ class TKManager:
         def reset():
             self.tracker.reset = True
 
-        self.reset_button = self.add_button("Reset", reset, 1080, 625)
+        self.reset_button = self.add_button("Reset", reset, 1250, 650)
         # Startup Button
-        self.startup_button = self.add_button("Off", self.startup_button_pressed, 1080, 200)
+        self.startup_button = self.add_button("Off", self.startup_button_pressed, 1250, 200)
         self.config_startup_button()
         # Plot Buttons
-        self.actualize_button = self.add_button("Actualize", self.create_plot, 1080, 350)
-        self.clear_button = self.add_button('Clear', self.clear_plot, 1080, 425)
-        self.quit_button = self.add_button("Quit", self.hide_window, 1080, 875)
+        self.actualize_button = self.add_button("Actualize", self.create_plot, 1250, 350)
+        self.clear_button = self.add_button('Clear', self.clear_plot, 1250, 425)
+        self.quit_button = self.add_button("Quit", self.hide_window, 1250, 900)
 
         ## Plot
         self.plot = None
@@ -423,20 +423,38 @@ class TKManager:
         return self.data_dropdown[1].get(), self.analysis_dropdown[1].get(), self.time_dropdown[1].get(), \
             self.direction_dropdown[1].get(), self.part_dropdown[1].get()
 
-    def set_dropdowns(self, state):
-        """Sets all dropdowns to the selected state"""
-        self.data_dropdown[0]['state'] = state
-        self.analysis_dropdown[0]['state'] = state
-        self.direction_dropdown[0]['state'] = state
-        self.part_dropdown[0]['state'] = state
-        self.time_dropdown[0]['state'] = state
+    def set_dropdowns(self, state, data=True, analysis=True, part=True, time=True):
+        """Sets chosen dropdowns to the selected state
+        The dropdowns that will be changed depend on the parameters, defaults to all.
+        - data (1): data_dropdown
+        - analysis (2): analysis_dropdown
+        - part (3): direction_dropdown, part_dropdown
+        - time (4): time_dropdown
+        So e.g. True,True,False,True would mean all but the part dropdowns would be changed."""
+        if data:
+            self.data_dropdown[0]['state'] = state
+        if analysis:
+            self.analysis_dropdown[0]['state'] = state
+        if part:
+            self.direction_dropdown[0]['state'] = state
+            self.part_dropdown[0]['state'] = state
+        if time:
+            self.time_dropdown[0]['state'] = state
 
-    def show_plot(self, plot):
-        """First clears the current plot if exists (by calling self.clear_plot), then places the new Plot."""
+    def show_plot(self, plot, plot_type):
+        """First clears the current plot if exists (by calling self.clear_plot), then places the new Plot
+        If plot_type equals 'heatmap' then don't enable part_dropdowns, otherwise enable all of them.
+        This is to avoid any misconception over the part dropdowns not working, because they are NOT used in heatmap plots!
+        For further detail look into data_analysis/create_plot and data_analysis/create_tkinter_plot"""
         self.clear_plot()
         self.plot = plot
         plot.get_tk_widget().place(x=40, y=325)
-        self.set_dropdowns('normal')
+
+        # Enable Dropdowns, but dont enable part dropdowns if plot type is 'heatmap'
+        if plot_type == 'heatmap':
+            self.set_dropdowns('normal', True, True, False, True)
+        else:
+            self.set_dropdowns('normal') # Defaults to all being true, no settings needed
 
     def on_closing(self, event):
         """Sets state to quiting, the app will be closed next frame."""
