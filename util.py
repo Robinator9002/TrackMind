@@ -118,18 +118,21 @@ def convert_last_data_to_dataframe(last_data):
     return pd.DataFrame(data)
 
 
-PRODUCTIVITY_PER_CATEGORY = {frozenset[('coding', 'developing', 'modeling')]: 'productive',
-                             frozenset[('util', 'browser', 'communication')]: 'mediocre productivity',
-                             frozenset[('social_media', 'entertainment', 'gaming', 'music')]: 'unproductive',
-                             frozenset[('unknown',)]: 'other'}
+PRODUCTIVITY_PER_CATEGORY = {frozenset(('coding', 'developing', 'modeling',)): 'productive',
+                             frozenset(('util', 'browser', 'communication',)): 'mediocre productivity',
+                             frozenset(('social_media', 'entertainment', 'gaming', 'music',)): 'unproductive',
+                             frozenset(('unknown',)): 'other'}
 
 
 def get_productivity_by_category(category):
     """
     Returns the productivity level based on the provided app category.
-    Therefor uses the PRODUCTIVITY_PER_CATEGORY Dictionary. Includes 'other' for 'unknown' app category.
+    Uses the PRODUCTIVITY_PER_CATEGORY dictionary. Defaults to 'other'.
     """
-    return PRODUCTIVITY_PER_CATEGORY.get(category, 'other')
+    for key_set, productivity in PRODUCTIVITY_PER_CATEGORY.items():
+        if category in key_set:
+            return productivity
+    return 'other'
 
 
 def get_productivity_score_by_category(category):

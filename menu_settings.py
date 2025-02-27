@@ -23,9 +23,9 @@ DROPDOWN_ARROW = "white"
 
 # Dropdown Content
 DROPDOWN_CONTENT = {'App Usage': (
-'Most Used Apps', 'Activity Tracking', 'Productivity', 'Total Active Time', 'Usage Distribution', 'Usage Density'),
+'Most Used Apps', 'Activity Tracking', 'Productivity', 'Productivity Total', 'Total Active Time', 'Usage Distribution', 'Usage Density'),
                     'Tracker': (
-                    'Most Used Apps', 'Activity Tracking', 'Productivity', 'Total Active Time', 'Usage Distribution',
+                    'Most Used Apps', 'Activity Tracking', 'Productivity', 'Productivity Total', 'Total Active Time', 'Usage Distribution',
                     'Usage Density'),
                     'Notifications': ('Message Count', 'Message Type', 'Activity', 'Likes', 'Likes Corr'),
                     'Direction': ('Top', 'Last'),
@@ -59,7 +59,7 @@ BUTTON_RED_BG, BUTTON_RED_HOVER_BG = '#E53935', '#EF5350'
 
 ## Notification
 # Main settings
-NOTIFICATION_OPEN_TIME = 60000  # In Milliseconds
+NOTIFICATION_OPEN_TIME = 10000  # In Milliseconds
 # Frame
 NOTIFICATION_WIDTH, NOTIFICATION_HEIGHT = 500, 325
 NOTIFICATION_RESIZABLE = (False, False)

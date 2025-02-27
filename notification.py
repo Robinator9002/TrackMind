@@ -38,13 +38,11 @@ class NotificationManager:
         if not self.data:
             return None
 
-        notifications, new_delays, uses_kpm = get_cases(self.data, self.delays, self.tracker.time_manager.kpm)
+        notifications, new_delays = get_cases(self.data, self.delays, self.tracker.time_manager.kpm)
         if new_delays:
             self.delays = new_delays
         for item in self.notifications:
             notifications.append(item)
-        if uses_kpm:
-            self.tracker.time_manager.reset_kpm()  # Reset the KPM if they were used
 
         return notifications
 

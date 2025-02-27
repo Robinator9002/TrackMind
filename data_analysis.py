@@ -75,7 +75,8 @@ class PlotManager:
 
         # If heatmap disable TKManager's part dropdown
         if plot_type == 'heatmap':
-            self.tracker.app.tk_manager.set_dropdowns('disabled', False, False, True, False) # Only Part Dropdowns! Parameters: data, analysis, part, time
+            self.tracker.app.tk_manager.set_dropdowns('disabled', False, False, True,
+                                                      False)  # Only Part Dropdowns! Parameters: data, analysis, part, time
 
         # Load Data
         data = None
@@ -351,7 +352,7 @@ class PlotManager:
         # Create canvas
         canvas = FigureCanvasTkAgg(fig, master=root)
         canvas.draw()
-        self.tracker.app.tk_manager.show_plot(canvas, plot_type) # Give plot_type to correctly handle Part Plots!
+        self.tracker.app.tk_manager.show_plot(canvas, plot_type)  # Give plot_type to correctly handle Part Plots!
 
     @staticmethod
     def close_plot(plot):

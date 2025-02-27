@@ -41,7 +41,7 @@ ACTIVE = 30  # KPM
 MODERATE = 15  # KPM
 PASSIVE = 5  # KPM
 INACTIVE = 300  # seconds
-ACTIVITY_RESET_TIME = 120 # seconds
+ACTIVITY_RESET_TIME = 100 # seconds, should be lower than the category_activity timer
 
 ### Data
 DATA_ROOT = "data"

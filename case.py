@@ -66,7 +66,7 @@ def get_cases(data, delays, kpm=None):
     new_delays = {key: value for key, value in delays.items()}
 
     if delays['min'] > 0:
-        return [], delays, False
+        return [], delays
     new_delays['min'] = BASE_DELAYS['min']
 
     category, activity, opened_time, active_time, total_active_time = data['category'], data['activity'], data[
@@ -77,8 +77,6 @@ def get_cases(data, delays, kpm=None):
     opened_time_formated, active_time_formated, total_active_time_formated = format_time(opened_time), format_time(
         active_time), format_time(total_active_time)
 
-    uses_kpm = False
-
     ### Categories
     for cat in get_categories_by_str(str(category)):
         ## Category/Activity
@@ -87,7 +85,6 @@ def get_cases(data, delays, kpm=None):
                 cases.append(CATEGORY_ACTIVITY_NOTIFICATION)
                 types.append(CATEGORY_ACTIVITY_NOTIFICATION_TYPE)
                 new_delays['category_activity'] = BASE_DELAYS['category_activity']
-                uses_kpm = True
     ## Less important Category
     # First check if in other category (which will be ignored)
     if not productivity == -1:
@@ -131,4 +128,4 @@ def get_cases(data, delays, kpm=None):
         new_delays['over_total_active_time'] = BASE_DELAYS['over_total_active_time']
 
     notifications = [[cases[i], types[i]] for i in range(len(cases))]
-    return notifications, new_delays, uses_kpm
+    return notifications, new_delays
