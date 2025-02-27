@@ -1,0 +1,46 @@
+# Bytecode- und Cache-Dateien
+__pycache__/
+*.py[cod]
+
+# Virtuelle Umgebungen
+venv/
+.venv/
+.env/
+
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db
+
+# Editor- und IDE-Dateien
+.idea/
+.vscode/
+*.sublime-workspace
+
+# Logs & Debugging-Dateien
+*.log
+*.sqlite3
+*.db
+
+# Pip / Poetry
+pip-log.txt
+pip-delete-this-directory.txt
+poetry.lock
+
+# Jupyter Notebook Cache
+.ipynb_checkpoints/
+
+# Docker Dateien
+*.pid
+*.sock
+docker-compose.override.yml
+
+# Machine Learning & große Dateien
+/data/
+/models/
+*.h5
+*.ckpt
+
+# Secrets & Konfigurationen
+.env
+config.json
+secrets.yml
