@@ -98,15 +98,14 @@ class Tracker:
         This should be called every frame!"""
         app = self.win_manager.active_app
         if self.last_app is None and app:
-            last_app = self.last_app
             self.last_app = app
             self.apply_time()
-            self.time_manager.on_app_swap(last_app)
+            self.time_manager.on_app_swap(self.last_app)
             self.apply_time()
         if app and self.last_app != app:
-            last_app = self.last_app
             self.last_app = app
-            self.time_manager.on_app_swap(last_app)
+            self.save_all(self.last_app)
+            self.time_manager.on_app_swap(self.last_app)
 
             self.apply_time()
 

@@ -54,7 +54,6 @@ class TimeManager:
         self.active_time = 0
         self.total_active_time = 0
         self.last_activity_time = None
-        self.reset_kpm()
 
     def on_keypress(self):
         """Called when a key is pressed. Updates the active time and key-presses."""
@@ -62,13 +61,14 @@ class TimeManager:
         self.kp += 1
 
     def on_app_swap(self, app):
-        """Called when the app is swapped. Saves and resets the times."""
+        """Called when the app is swapped. Saves and resets the times. Also resets the KPM."""
         self.reset_times(app)  # Reset the times whenever the app is swapped
+        self.reset_kpm()
 
     def check_inactivity(self):
         """Checks if the user is inactive based on the last activity, if so then sets self.inactive to True,
         also uses values like TimeManager.subtracted_time (self.subtracted_time) to calculate correct values for active and total_active time."""
-        if self.last_activity_time is None or time.time is None: return
+        if self.last_activity_time is None: return
         # Get Time Values
         current_time = time.time()
         inactive_time = current_time - self.last_activity_time
@@ -94,7 +94,7 @@ class TimeManager:
     @property
     def kpm(self):
         """Returns the current key-presses divided by the active time and multiplied by 60 (to get to minutes)."""
-        return int((self.kp / max(self.active_time, 1)) * 60)
+        return int((max(self.kp, 1) / max(self.keypress_time, 1)) * 60)
 
     def reset_kpm(self):
         """Resets self.kp and self.keypress_time"""
